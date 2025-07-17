@@ -1,0 +1,11 @@
+{
+  "Products": [
+      {
+        "id": 1,
+        "name": "Efficascent",
+        "Selling_price": 12.5,
+        "Wholesale_price": 9,
+        "description": "A product made to apply on skin to relieve stomach gas discomfort."
+    }
+  ]
+}
