@@ -1,18 +1,43 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useEffect, useState } from 'react';
 import { Button, Dimensions, ScrollView, Text, View } from 'react-native';
+import Fetchdata from '../../components/fetchdata';
+
+
+type Product = {
+  id: number;
+  name: string;
+  Selling_price: number;
+  Wholesale_price: number;
+  Barcode: number;
+  description: string;
+};
 
 export default function ScannerScreen() {
+
   const [scanned, setScanned] = useState(false);
   const [scannedData, setScannedData] = useState('');
+  const [detectedProduct, setDetectedProduct] = useState({})
+  const [products, setProducts] = useState<Product[]>([]);
   const [permission, requestPermission] = useCameraPermissions();
 
   const screenHeight = Dimensions.get('window').height;
   const cameraHeight = screenHeight/2
   const cameraWidth = ((Dimensions.get('window').width)*3)/4
+
   useEffect(() => {
     if (!permission) requestPermission();
   }, [permission]);
+
+  useEffect(()=>{
+    let matchProduct = products.find((product) => product.Barcode.toString() === scannedData)
+    if(matchProduct){
+      setDetectedProduct(matchProduct)
+    }else {
+    setDetectedProduct({});
+  }
+
+  }, [scannedData, products])
 
   if (!permission?.granted) {
     return (
@@ -28,6 +53,11 @@ export default function ScannerScreen() {
     setScannedData(data);
   };
 
+  const handleData = (data : Product[])=>{ //callback function to store data from fetchdata component
+    setProducts(data)
+  }
+
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#FFF' }}
@@ -39,6 +69,7 @@ export default function ScannerScreen() {
         paddingVertical: 20,
       }}
     >
+      <Fetchdata sendData={handleData} />
       <View style={{ height: cameraHeight, width: cameraWidth, backgroundColor: '#000' }}>
         <CameraView
           style={{ flex: 1 }}
@@ -54,7 +85,7 @@ export default function ScannerScreen() {
             <Text style={{ fontSize: 18, marginBottom: 10, textAlign: 'center' }}>
               Scanned: {scannedData}
             </Text>
-            <Button title="Scan Again" onPress={() => setScanned(false)} />
+            <Button title="Scan Again" onPress={() => {setScannedData(''); setDetectedProduct({}); setScanned(false)}} />
           </>
         ) : (
           <Text style={{ fontSize: 16, color: '#555', textAlign: 'center' }}>
@@ -62,6 +93,22 @@ export default function ScannerScreen() {
           </Text>
         )}
       </View>
+
+        {detectedProduct && Object.keys(detectedProduct).length > 0 && (
+          <View>
+            {Object.entries(detectedProduct)
+              .filter(([key]) => key !== 'id')
+              .map(([key, value]) => (
+                <Text key={key} style={{ textAlign: 'center' }}>
+                  {key}: {value?.toString()}
+                </Text>
+              ))}
+          </View>
+        )}
+
+
+      
+
     </ScrollView>
   )
 }
